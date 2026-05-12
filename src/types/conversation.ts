@@ -10,7 +10,7 @@ export interface Message {
 export interface Contact {
   name: string
   phone: string
-  avatar?: string
+  avatar?: string | null
 }
 
 export interface Conversation {

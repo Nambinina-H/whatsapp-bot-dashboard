@@ -14,7 +14,7 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
 
   return (
     <div className="flex h-full flex-col bg-chat-pane">
-      <header className="flex items-center gap-3 border-b bg-background px-4 py-3">
+      <header className="flex h-16 shrink-0 items-center gap-3 border-b bg-background px-4">
         {onBack && (
           <button
             type="button"
@@ -53,13 +53,19 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="mx-auto flex max-w-3xl flex-col gap-2">
+        <div className="mx-auto flex max-w-3xl flex-col">
           {sorted.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted-foreground">
               Aucun message dans cette conversation.
             </p>
           ) : (
-            sorted.map((m) => <MessageBubble key={m.id} message={m} />)
+            sorted.map((m, i) => {
+              const prev = i > 0 ? sorted[i - 1] : null
+              const isGrouped = prev !== null && prev.from === m.from
+              return (
+                <MessageBubble key={m.id} message={m} isGrouped={isGrouped} />
+              )
+            })
           )}
         </div>
       </div>

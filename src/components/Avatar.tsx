@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils'
 
 interface AvatarProps {
   name: string
-  src?: string
+  src?: string | null
   className?: string
 }
 
