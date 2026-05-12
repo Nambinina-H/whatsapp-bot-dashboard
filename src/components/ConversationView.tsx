@@ -62,7 +62,7 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
         </div>
       </div>
 
-      <footer className="shrink-0 border-t border-slate-200 bg-white px-6 py-2 text-xs text-slate-500">
+      <footer className="shrink-0 border-t border-slate-200 bg-white px-6 py-2 text-center text-xs text-slate-500">
         Lecture seule · les réponses sont gérées par n8n
       </footer>
     </div>

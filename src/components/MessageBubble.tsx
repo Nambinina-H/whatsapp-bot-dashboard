@@ -20,15 +20,15 @@ export function MessageBubble({ message, isGrouped }: MessageBubbleProps) {
       className={cn(
         'flex w-full first:mt-0',
         isGrouped ? 'mt-1' : 'mt-3',
-        isBot ? 'justify-start' : 'justify-end',
+        isBot ? 'justify-end' : 'justify-start',
       )}
     >
       <div
         className={cn(
           'max-w-[640px] rounded-2xl px-3 py-2 text-sm text-slate-900 shadow-sm',
           isBot
-            ? 'rounded-bl-sm border border-slate-200 bg-white'
-            : 'rounded-br-sm bg-[#d9fdd3]',
+            ? 'rounded-br-sm bg-[#d9fdd3]'
+            : 'rounded-bl-sm border border-slate-200 bg-white',
         )}
       >
         <p className="whitespace-pre-wrap break-words">
