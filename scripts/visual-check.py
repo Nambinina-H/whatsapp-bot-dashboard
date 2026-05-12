@@ -17,6 +17,8 @@ VIEWPORTS = [
     {"name": "mobile-375",  "width": 375,  "height": 812},
     {"name": "tablet-768",  "width": 768,  "height": 1024},
     {"name": "desktop-1280","width": 1280, "height": 800},
+    {"name": "desktop-1440","width": 1440, "height": 900},
+    {"name": "desktop-1920","width": 1920, "height": 1080},
 ]
 
 

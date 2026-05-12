@@ -54,10 +54,10 @@ export function ConversationList({
   const sorted = sortConversations(conversations)
 
   return (
-    <div className="flex h-full flex-col bg-background">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b px-4">
+    <div className="flex h-full flex-col bg-white">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-base font-semibold">Conversations</h1>
+          <h1 className="text-base font-semibold text-slate-900">Conversations</h1>
           {isFetching && !isLoading && (
             <span
               className="relative inline-flex h-2 w-2"
@@ -69,7 +69,7 @@ export function ConversationList({
             </span>
           )}
         </div>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-slate-500">
           {isLoading ? 'Chargement…' : `${conversations.length} contact(s)`}
         </span>
       </header>
@@ -81,7 +81,7 @@ export function ConversationList({
       ) : (
         <ul className="flex-1 overflow-y-auto">
           {sorted.length === 0 && (
-            <li className="px-4 py-8 text-center text-sm text-muted-foreground">
+            <li className="px-4 py-8 text-center text-sm text-slate-500">
               Aucune conversation pour l'instant.
             </li>
           )}
@@ -94,24 +94,24 @@ export function ConversationList({
                   type="button"
                   onClick={() => onSelect(conv.id)}
                   className={cn(
-                    'flex w-full items-center gap-3 border-b px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-accent',
-                    isSelected && 'bg-accent',
+                    'flex w-full items-center gap-3 border-b border-slate-100 px-3 py-3 text-left transition-colors last:border-b-0 hover:bg-slate-50',
+                    isSelected && 'bg-slate-100 hover:bg-slate-100',
                   )}
                 >
                   <Avatar name={conv.contact.name} src={conv.contact.avatar} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="truncate text-sm font-medium">
+                      <span className="truncate text-sm font-medium text-slate-900">
                         {conv.contact.name}
                       </span>
                       {last && (
-                        <span className="shrink-0 text-xs text-muted-foreground">
+                        <span className="shrink-0 text-xs text-slate-400">
                           {formatTimestamp(last.timestamp)}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="truncate text-sm text-muted-foreground">
+                      <span className="truncate text-xs text-slate-500">
                         {previewOf(conv)}
                       </span>
                       {conv.unreadCount > 0 && (

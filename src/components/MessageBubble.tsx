@@ -20,21 +20,21 @@ export function MessageBubble({ message, isGrouped }: MessageBubbleProps) {
       className={cn(
         'flex w-full first:mt-0',
         isGrouped ? 'mt-1' : 'mt-3',
-        isBot ? 'justify-end' : 'justify-start',
+        isBot ? 'justify-start' : 'justify-end',
       )}
     >
       <div
         className={cn(
-          'max-w-[80%] rounded-lg px-3 py-1.5 text-sm shadow-sm md:max-w-[75%] lg:max-w-[65%]',
+          'max-w-[640px] rounded-2xl px-3 py-2 text-sm text-slate-900 shadow-sm',
           isBot
-            ? 'rounded-br-sm bg-bubble-out text-foreground'
-            : 'rounded-bl-sm bg-bubble-in text-foreground',
+            ? 'rounded-bl-sm border border-slate-200 bg-white'
+            : 'rounded-br-sm bg-[#d9fdd3]',
         )}
       >
         <p className="whitespace-pre-wrap break-words">
           {renderTextWithLinks(message.text, { italics: isBot })}
           <span
-            className="float-right ml-2 mt-1 select-none text-[10px] leading-none text-muted-foreground"
+            className="float-right ml-2 mt-1 select-none text-[10px] leading-none text-slate-500"
             aria-label={`envoyé à ${time}`}
           >
             {time}
