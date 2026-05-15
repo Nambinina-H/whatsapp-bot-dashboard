@@ -36,6 +36,7 @@ export function useConversations() {
     queryKey: ['conversations'],
     queryFn: fetchConversations,
     refetchInterval: 3000,
+    refetchIntervalInBackground: false,
     select: (data) => data.conversations,
   })
 }
