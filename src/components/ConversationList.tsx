@@ -1,7 +1,12 @@
+import { useMemo, useState } from 'react'
 import { differenceInDays, format, isToday, isYesterday } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Avatar } from '@/components/Avatar'
 import { ConversationListSkeleton } from '@/components/ConversationListSkeleton'
+import { EmptySearchState } from '@/components/EmptySearchState'
+import { SearchBar } from '@/components/SearchBar'
+import { useDebounce } from '@/hooks/useDebounce'
+import { highlightMatch } from '@/lib/highlight'
 import { cn } from '@/lib/utils'
 import type { Conversation } from '@/types/conversation'
 
@@ -44,6 +49,13 @@ function previewOf(conv: Conversation): string {
   return `${prefix}${firstLine}`
 }
 
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+}
+
 export function ConversationList({
   conversations,
   selectedId,
@@ -51,7 +63,29 @@ export function ConversationList({
   isLoading,
   isFetching,
 }: ConversationListProps) {
-  const sorted = sortConversations(conversations)
+  const [searchQuery, setSearchQuery] = useState('')
+  const debouncedQuery = useDebounce(searchQuery, 250)
+
+  const filteredConversations = useMemo(() => {
+    const query = debouncedQuery.trim()
+    if (!query) return conversations
+
+    const normalizedQuery = normalize(query)
+    const queryDigits = query.replace(/\D/g, '')
+
+    return conversations.filter((conv) => {
+      const name = normalize(conv.contact.name)
+      const phone = conv.contact.phone.replace(/\D/g, '')
+
+      return (
+        name.includes(normalizedQuery) ||
+        (queryDigits.length > 0 && phone.includes(queryDigits))
+      )
+    })
+  }, [conversations, debouncedQuery])
+
+  const sorted = sortConversations(filteredConversations)
+  const activeQuery = debouncedQuery.trim()
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -70,21 +104,43 @@ export function ConversationList({
           )}
         </div>
         <span className="text-xs text-slate-500">
-          {isLoading ? 'Chargement…' : `${conversations.length} contact(s)`}
+          {isLoading
+            ? 'Chargement…'
+            : activeQuery
+              ? `${filteredConversations.length} sur ${conversations.length}`
+              : `${conversations.length} contact(s)`}
         </span>
       </header>
+
+      {!isLoading && conversations.length > 0 && (
+        <div className="shrink-0 border-b border-slate-100 px-3 py-2">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onClear={() => setSearchQuery('')}
+          />
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex-1 overflow-hidden">
           <ConversationListSkeleton />
         </div>
+      ) : conversations.length === 0 ? (
+        <div className="flex-1 overflow-hidden">
+          <p className="px-4 py-8 text-center text-sm text-slate-500">
+            Aucune conversation pour l'instant.
+          </p>
+        </div>
+      ) : filteredConversations.length === 0 ? (
+        <div className="flex-1 overflow-hidden">
+          <EmptySearchState
+            query={activeQuery}
+            onClear={() => setSearchQuery('')}
+          />
+        </div>
       ) : (
         <ul className="flex-1 overflow-y-auto">
-          {sorted.length === 0 && (
-            <li className="px-4 py-8 text-center text-sm text-slate-500">
-              Aucune conversation pour l'instant.
-            </li>
-          )}
           {sorted.map((conv) => {
             const last = lastMessageOf(conv)
             const isSelected = conv.id === selectedId
@@ -102,7 +158,7 @@ export function ConversationList({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate text-sm font-medium text-slate-900">
-                        {conv.contact.name}
+                        {highlightMatch(conv.contact.name, activeQuery)}
                       </span>
                       {last && (
                         <span className="shrink-0 text-xs text-slate-400">
