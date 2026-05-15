@@ -1,6 +1,8 @@
 import { ChevronLeft } from 'lucide-react'
 import { Avatar } from '@/components/Avatar'
+import { ChannelGlyph } from '@/components/ChannelGlyph'
 import { MessageBubble } from '@/components/MessageBubble'
+import { CHANNELS } from '@/lib/channels'
 import type { Conversation } from '@/types/conversation'
 
 interface ConversationViewProps {
@@ -12,6 +14,7 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
   const sorted = [...conversation.messages].sort((a, b) =>
     a.timestamp.localeCompare(b.timestamp),
   )
+  const channelCfg = CHANNELS[conversation.channel]
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -20,7 +23,7 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
           <button
             type="button"
             onClick={onBack}
-            className="-ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 md:hidden"
+            className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 md:hidden"
             aria-label="Retour à la liste"
           >
             <ChevronLeft className="size-5" aria-hidden="true" />
@@ -29,13 +32,30 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
         <Avatar
           name={conversation.contact.name}
           src={conversation.contact.avatar}
+          channel={conversation.channel}
         />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold text-slate-900">
             {conversation.contact.name}
           </div>
-          <div className="truncate text-xs text-slate-500">
-            {conversation.contact.phone}
+          <div className="flex items-center gap-1.5 truncate text-xs text-slate-500">
+            <span className="truncate">{conversation.contact.phone}</span>
+            <span aria-hidden="true">·</span>
+            <span
+              className="inline-flex shrink-0 items-center gap-1"
+              style={{ color: channelCfg.color }}
+              aria-label={`Canal : ${channelCfg.label}`}
+              title={channelCfg.label}
+            >
+              <ChannelGlyph
+                channel={conversation.channel}
+                size={12}
+                decorative
+              />
+              <span className="hidden font-medium sm:inline">
+                {channelCfg.label}
+              </span>
+            </span>
           </div>
         </div>
         <span className="shrink-0 text-xs text-slate-500">

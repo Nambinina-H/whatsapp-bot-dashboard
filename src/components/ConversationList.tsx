@@ -1,14 +1,21 @@
 import { useMemo, useState } from 'react'
 import { differenceInDays, format, isToday, isYesterday } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { X } from 'lucide-react'
 import { Avatar } from '@/components/Avatar'
+import { ChannelGlyph } from '@/components/ChannelGlyph'
+import {
+  ChannelFilterMenu,
+  type ChannelFilterValue,
+} from '@/components/ChannelFilterMenu'
 import { ConversationListSkeleton } from '@/components/ConversationListSkeleton'
 import { EmptySearchState } from '@/components/EmptySearchState'
 import { SearchBar } from '@/components/SearchBar'
 import { useDebounce } from '@/hooks/useDebounce'
+import { CHANNELS } from '@/lib/channels'
 import { highlightMatch } from '@/lib/highlight'
 import { cn } from '@/lib/utils'
-import type { Conversation } from '@/types/conversation'
+import type { Channel, Conversation } from '@/types/conversation'
 
 interface ConversationListProps {
   conversations: Conversation[]
@@ -64,28 +71,54 @@ export function ConversationList({
   isFetching,
 }: ConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [channelFilter, setChannelFilter] = useState<ChannelFilterValue>('all')
   const debouncedQuery = useDebounce(searchQuery, 250)
+
+  const channelCounts = useMemo(() => {
+    const counts: Record<Channel, number> = {
+      whatsapp: 0,
+      facebook: 0,
+      instagram: 0,
+      linkedin: 0,
+      unknown: 0,
+    }
+    for (const c of conversations) counts[c.channel] += 1
+    return counts
+  }, [conversations])
+
+  const availableChannels = useMemo(
+    () =>
+      (Object.keys(channelCounts) as Channel[]).filter(
+        (c) => channelCounts[c] > 0,
+      ),
+    [channelCounts],
+  )
+
+  const showChannelFilter = availableChannels.length > 1
 
   const filteredConversations = useMemo(() => {
     const query = debouncedQuery.trim()
-    if (!query) return conversations
-
     const normalizedQuery = normalize(query)
     const queryDigits = query.replace(/\D/g, '')
 
     return conversations.filter((conv) => {
+      if (channelFilter !== 'all' && conv.channel !== channelFilter) {
+        return false
+      }
+      if (!query) return true
+
       const name = normalize(conv.contact.name)
       const phone = conv.contact.phone.replace(/\D/g, '')
-
       return (
         name.includes(normalizedQuery) ||
         (queryDigits.length > 0 && phone.includes(queryDigits))
       )
     })
-  }, [conversations, debouncedQuery])
+  }, [conversations, debouncedQuery, channelFilter])
 
   const sorted = sortConversations(filteredConversations)
   const activeQuery = debouncedQuery.trim()
+  const hasActiveFilter = channelFilter !== 'all' || activeQuery.length > 0
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -106,19 +139,49 @@ export function ConversationList({
         <span className="text-xs text-slate-500">
           {isLoading
             ? 'Chargement…'
-            : activeQuery
+            : hasActiveFilter
               ? `${filteredConversations.length} sur ${conversations.length}`
               : `${conversations.length} contact(s)`}
         </span>
       </header>
 
       {!isLoading && conversations.length > 0 && (
-        <div className="shrink-0 border-b border-slate-100 px-3 py-2">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onClear={() => setSearchQuery('')}
-          />
+        <div className="flex shrink-0 flex-col gap-2 border-b border-slate-100 px-3 py-2">
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onClear={() => setSearchQuery('')}
+              />
+            </div>
+            {showChannelFilter && (
+              <ChannelFilterMenu
+                available={availableChannels}
+                active={channelFilter}
+                onChange={setChannelFilter}
+                counts={channelCounts}
+                totalCount={conversations.length}
+              />
+            )}
+          </div>
+          {channelFilter !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setChannelFilter('all')}
+              aria-label={`Retirer le filtre ${CHANNELS[channelFilter].label}`}
+              className="group inline-flex w-fit items-center gap-1.5 rounded-full bg-slate-100 py-0.5 pl-2 pr-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200"
+            >
+              <span style={{ color: CHANNELS[channelFilter].color }}>
+                <ChannelGlyph channel={channelFilter} size={11} decorative />
+              </span>
+              <span>{CHANNELS[channelFilter].label}</span>
+              <X
+                className="size-3 text-slate-400 group-hover:text-slate-600"
+                aria-hidden="true"
+              />
+            </button>
+          )}
         </div>
       )}
 
@@ -135,8 +198,14 @@ export function ConversationList({
       ) : filteredConversations.length === 0 ? (
         <div className="flex-1 overflow-hidden">
           <EmptySearchState
-            query={activeQuery}
-            onClear={() => setSearchQuery('')}
+            query={
+              activeQuery ||
+              (channelFilter !== 'all' ? CHANNELS[channelFilter].label : '')
+            }
+            onClear={() => {
+              setSearchQuery('')
+              setChannelFilter('all')
+            }}
           />
         </div>
       ) : (
@@ -154,7 +223,11 @@ export function ConversationList({
                     isSelected && 'bg-slate-100 hover:bg-slate-100',
                   )}
                 >
-                  <Avatar name={conv.contact.name} src={conv.contact.avatar} />
+                  <Avatar
+                    name={conv.contact.name}
+                    src={conv.contact.avatar}
+                    channel={conv.channel}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate text-sm font-medium text-slate-900">

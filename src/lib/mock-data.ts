@@ -4,6 +4,7 @@ export const mockConversationsPayload: ConversationsPayload = {
   conversations: [
     {
       id: 'conv-001',
+      channel: 'whatsapp',
       contact: {
         name: 'Hery Rakoto',
         phone: '+261 34 12 345 67',
@@ -38,6 +39,7 @@ export const mockConversationsPayload: ConversationsPayload = {
     },
     {
       id: 'conv-002',
+      channel: 'facebook',
       contact: {
         name: 'Mialy Andriana',
         phone: '+261 33 22 110 88',
@@ -66,6 +68,7 @@ export const mockConversationsPayload: ConversationsPayload = {
     },
     {
       id: 'conv-003',
+      channel: 'instagram',
       contact: {
         name: 'Tovo R.',
         phone: '+261 32 90 555 41',
@@ -106,6 +109,7 @@ export const mockConversationsPayload: ConversationsPayload = {
     },
     {
       id: 'conv-004',
+      channel: 'linkedin',
       contact: {
         name: 'Nirina V.',
         phone: '+261 34 70 010 22',

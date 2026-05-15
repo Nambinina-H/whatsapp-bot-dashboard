@@ -1,5 +1,12 @@
 export type MessageSender = 'bot' | 'user'
 
+export type Channel =
+  | 'whatsapp'
+  | 'facebook'
+  | 'instagram'
+  | 'linkedin'
+  | 'unknown'
+
 export interface Message {
   id: string
   from: MessageSender
@@ -18,6 +25,7 @@ export interface Conversation {
   contact: Contact
   messages: Message[]
   unreadCount: number
+  channel: Channel
 }
 
 export interface ConversationsPayload {

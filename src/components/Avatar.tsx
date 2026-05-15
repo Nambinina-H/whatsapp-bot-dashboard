@@ -1,8 +1,11 @@
+import { ChannelBadge } from '@/components/ChannelBadge'
 import { cn, initials } from '@/lib/utils'
+import type { Channel } from '@/types/conversation'
 
 interface AvatarProps {
   name: string
   src?: string | null
+  channel?: Channel
   className?: string
 }
 
@@ -24,23 +27,30 @@ function colorFromName(name: string): string {
   return palette[hash % palette.length]
 }
 
-export function Avatar({ name, src, className }: AvatarProps) {
+export function Avatar({ name, src, channel, className }: AvatarProps) {
   return (
-    <div
-      className={cn(
-        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium text-white',
-        !src && colorFromName(name),
-        className,
-      )}
-    >
-      {src ? (
-        <img
-          src={src}
-          alt={name}
-          className="h-full w-full rounded-full object-cover"
+    <div className={cn('relative shrink-0', className)}>
+      <div
+        className={cn(
+          'flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium text-white',
+          !src && colorFromName(name),
+        )}
+      >
+        {src ? (
+          <img
+            src={src}
+            alt={name}
+            className="h-full w-full rounded-full object-cover"
+          />
+        ) : (
+          <span>{initials(name)}</span>
+        )}
+      </div>
+      {channel && (
+        <ChannelBadge
+          channel={channel}
+          className="absolute -bottom-0.5 -right-0.5"
         />
-      ) : (
-        <span>{initials(name)}</span>
       )}
     </div>
   )
