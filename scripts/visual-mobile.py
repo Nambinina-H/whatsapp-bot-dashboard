@@ -32,12 +32,12 @@ def main() -> int:
         )
 
         page.goto(URL, wait_until="networkidle")
-        page.wait_for_selector("input[aria-label='Rechercher un contact']")
+        page.wait_for_selector("input[aria-label='Rechercher un prospect']")
         page.wait_for_timeout(400)
 
         # Measure touch target sizes
-        search_input = page.locator("input[aria-label='Rechercher un contact']")
-        filter_btn = page.get_by_role("button", name="Filtrer par canal")
+        search_input = page.locator("input[aria-label='Rechercher un prospect']")
+        filter_btn = page.get_by_role("button", name="Filtrer")
         search_box = search_input.bounding_box()
         filter_box = filter_btn.bounding_box()
         report["steps"].append({
@@ -48,7 +48,7 @@ def main() -> int:
 
         # Verify input font-size >= 16px (iOS auto-zoom prevention)
         font_size = page.evaluate(
-            """() => getComputedStyle(document.querySelector("input[aria-label='Rechercher un contact']")).fontSize"""
+            """() => getComputedStyle(document.querySelector("input[aria-label='Rechercher un prospect']")).fontSize"""
         )
         report["steps"].append({
             "step": "search input font-size",
@@ -74,18 +74,11 @@ def main() -> int:
         # back button size
         back_btn = page.get_by_role("button", name="Retour à la liste")
         back_box = back_btn.bounding_box() if back_btn.count() else None
-        # channel label visibility (should be hidden on <640px)
-        channel_label_visible = (
-            page.locator("header").nth(1).locator("span.font-medium").count()
-            and page.locator("header").nth(1).locator("span.font-medium").first.is_visible()
-        )
-        # Check phone is visible
         phone_text = header.text_content() or ""
         report["steps"].append({
             "step": "conversation header at 375px",
             "header_width": header_box["width"] if header_box else None,
             "back_button_size": (back_box["width"], back_box["height"]) if back_box else None,
-            "channel_label_visible": bool(channel_label_visible),
             "header_text": phone_text.strip(),
         })
 

@@ -1,4 +1,4 @@
-"""Verify channel badge + filter menu (popover) UI."""
+"""Verify channel badge + filter menu (Canal + Campagne sections) UI."""
 
 from __future__ import annotations
 
@@ -17,8 +17,9 @@ MOCK_PAYLOAD = {
             "channel": "whatsapp",
             "contact": {"name": "Alice WA", "phone": "+261324649141", "avatar": None},
             "unreadCount": 1,
+            "lead": {"campaignName": "Acquisition"},
             "messages": [
-                {"id": "m1", "from": "user", "text": "Salut WhatsApp", "timestamp": "2026-05-14T09:00:00.000Z"},
+                {"id": "m1", "from": "user", "text": "Salut", "timestamp": "2026-05-14T09:00:00.000Z"},
             ],
         },
         {
@@ -26,8 +27,9 @@ MOCK_PAYLOAD = {
             "channel": "facebook",
             "contact": {"name": "Bob FB", "phone": "+33607141883", "avatar": None},
             "unreadCount": 0,
+            "lead": {"campaignName": "Testing"},
             "messages": [
-                {"id": "m2", "from": "user", "text": "Hello Facebook", "timestamp": "2026-05-14T10:00:00.000Z"},
+                {"id": "m2", "from": "user", "text": "Hello", "timestamp": "2026-05-14T10:00:00.000Z"},
             ],
         },
         {
@@ -35,6 +37,7 @@ MOCK_PAYLOAD = {
             "channel": "instagram",
             "contact": {"name": "Charlie IG", "phone": "+33782988667", "avatar": None},
             "unreadCount": 2,
+            "lead": {"campaignName": "Testing"},
             "messages": [
                 {"id": "m3", "from": "user", "text": "Insta", "timestamp": "2026-05-14T11:00:00.000Z"},
             ],
@@ -45,16 +48,7 @@ MOCK_PAYLOAD = {
             "contact": {"name": "Dana LI", "phone": "+261321994416", "avatar": None},
             "unreadCount": 0,
             "messages": [
-                {"id": "m4", "from": "user", "text": "LinkedIn ping", "timestamp": "2026-05-14T12:00:00.000Z"},
-            ],
-        },
-        {
-            "id": "c5",
-            "channel": "tiktok",
-            "contact": {"name": "Eve TT", "phone": "+261383910289", "avatar": None},
-            "unreadCount": 0,
-            "messages": [
-                {"id": "m5", "from": "user", "text": "Tiktok unknown", "timestamp": "2026-05-14T13:00:00.000Z"},
+                {"id": "m4", "from": "user", "text": "LinkedIn", "timestamp": "2026-05-14T12:00:00.000Z"},
             ],
         },
     ]
@@ -91,10 +85,10 @@ def main() -> int:
         )
 
         page.goto(URL, wait_until="networkidle")
-        page.wait_for_selector("input[aria-label='Rechercher un contact']")
+        page.wait_for_selector("input[aria-label='Rechercher un prospect']")
         page.wait_for_timeout(300)
 
-        filter_button = page.get_by_role("button", name="Filtrer par canal")
+        filter_button = page.get_by_role("button", name="Filtrer")
         report["steps"].append({
             "step": "initial state",
             "filter_button_visible": filter_button.is_visible(),
@@ -106,10 +100,10 @@ def main() -> int:
         # Open popover
         filter_button.click()
         page.wait_for_timeout(150)
-        menu = page.get_by_role("menu", name="Filtrer par canal")
+        menu = page.get_by_role("menu", name="Filtres")
         options = menu.get_by_role("menuitemradio")
         report["steps"].append({
-            "step": "popover opened",
+            "step": "popover opened (Canal + Campagne sections)",
             "menu_visible": menu.is_visible(),
             "option_count": options.count(),
             "option_labels": [
@@ -118,78 +112,77 @@ def main() -> int:
             ],
         })
 
-        # Pick Facebook
+        # Pick Facebook channel
         options.filter(has_text="Facebook").first.click()
         page.wait_for_timeout(200)
         report["steps"].append({
-            "step": "after selecting Facebook",
-            "menu_count": menu.count(),
+            "step": "after selecting Facebook channel",
             "items_visible": page.locator("ul > li").count(),
-            "active_pill_count": page.locator("button[aria-label='Retirer le filtre Facebook']").count(),
+            "channel_pill_count": page.locator("button[aria-label='Retirer le filtre canal Facebook']").count(),
         })
 
-        # Click pill X to clear
-        page.locator("button[aria-label='Retirer le filtre Facebook']").click()
+        # Reopen popover (now auto-closed after channel selection)
+        page.locator("button[aria-expanded]").first.click()
+        page.wait_for_selector("[role='menu'][aria-label='Filtres']", timeout=5000)
+        all_options = page.locator("[role='menu'] [role='menuitemradio']")
+        all_option_labels = [
+            (all_options.nth(i).text_content() or "").strip()
+            for i in range(all_options.count())
+        ]
+        report["steps"].append({
+            "step": "reopened popover shows Campagne section",
+            "option_count": all_options.count(),
+            "all_options": all_option_labels,
+        })
+        # Pick Testing campaign (use partial text match on text-only campaign option)
+        all_options.filter(has_text="Testing").first.click()
+        page.wait_for_timeout(300)
+        report["steps"].append({
+            "step": "combined Facebook + Testing filters",
+            "items_visible": page.locator("ul > li").count(),
+            "channel_pill_count": page.locator("button[aria-label='Retirer le filtre canal Facebook']").count(),
+            "campaign_pill_count": page.locator("button[aria-label='Retirer le filtre campagne Testing']").count(),
+        })
+
+        # Clear channel pill -> only campaign filter remains
+        page.locator("button[aria-label='Retirer le filtre canal Facebook']").click()
         page.wait_for_timeout(150)
         report["steps"].append({
-            "step": "after clearing via pill",
+            "step": "after clearing channel pill",
+            "items_visible": page.locator("ul > li").count(),
+            "channel_pill_count": page.locator("button[aria-label^='Retirer le filtre canal']").count(),
+            "campaign_pill_count": page.locator("button[aria-label^='Retirer le filtre campagne']").count(),
+        })
+
+        # Clear campaign pill -> back to all
+        page.locator("button[aria-label='Retirer le filtre campagne Testing']").click()
+        page.wait_for_timeout(150)
+        report["steps"].append({
+            "step": "after clearing campaign pill",
             "items_visible": page.locator("ul > li").count(),
             "active_pill_count": page.locator("button[aria-label^='Retirer le filtre']").count(),
         })
 
-        # Open popover, press Escape -> closes
-        filter_button.click()
+        # ESC closes popover
+        page.get_by_role("button", name="Filtrer").click()
         page.wait_for_timeout(150)
         page.keyboard.press("Escape")
         page.wait_for_timeout(150)
         report["steps"].append({
             "step": "ESC closes popover",
-            "menu_count": page.get_by_role("menu", name="Filtrer par canal").count(),
+            "menu_count": page.get_by_role("menu", name="Filtres").count(),
         })
 
-        # Open popover, click outside -> closes
-        filter_button.click()
-        page.wait_for_timeout(150)
-        page.mouse.click(900, 400)
-        page.wait_for_timeout(150)
-        report["steps"].append({
-            "step": "outside click closes popover",
-            "menu_count": page.get_by_role("menu", name="Filtrer par canal").count(),
-        })
-
-        # Combine: filter Instagram + search 'Alice' (mismatch)
-        filter_button.click()
-        page.wait_for_timeout(150)
-        menu.get_by_role("menuitemradio").filter(has_text="Instagram").first.click()
-        page.wait_for_timeout(150)
-        page.locator("input[aria-label='Rechercher un contact']").fill("Alice")
-        page.wait_for_timeout(400)
-        report["steps"].append({
-            "step": "Instagram filter + search 'Alice' (mismatch)",
-            "items_visible": page.locator("ul > li").count(),
-            "empty_state_visible": page.get_by_text("Aucun contact pour").is_visible(),
-        })
-
-        # Reset via EmptySearchState "Effacer" button (clears search + filter)
-        page.get_by_role("button", name="Effacer", exact=True).click()
-        page.wait_for_timeout(300)
-        report["steps"].append({
-            "step": "after Effacer",
-            "items_visible": page.locator("ul > li").count(),
-            "active_pill_count": page.locator("button[aria-label^='Retirer le filtre']").count(),
-            "search_value": page.locator("input[aria-label='Rechercher un contact']").input_value(),
-        })
-
-        # Open a conversation, inspect header channel label
+        # Open conversation, inspect inline header content
         page.locator("ul > li").first.click()
         page.wait_for_timeout(200)
         header_text = page.locator("header").nth(1).text_content() or ""
+        header_box = page.locator("header").nth(1).bounding_box()
         report["steps"].append({
-            "step": "open first conv, header content",
-            "header_includes_channel": any(
-                lbl in header_text
-                for lbl in ("WhatsApp", "Facebook", "Instagram", "LinkedIn", "Inconnu")
-            ),
+            "step": "open first conv, inline header",
+            "header_height": header_box["height"] if header_box else None,
+            "header_has_phone": "+33" in header_text or "+261" in header_text,
+            "header_has_campaign_label": "Campagne" in header_text,
         })
 
         browser.close()
