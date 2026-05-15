@@ -9,6 +9,7 @@ export const mockConversationsPayload: ConversationsPayload = {
         name: 'Hery Rakoto',
         phone: '+261 34 12 345 67',
       },
+      lead: { campaignName: 'Acquisition' },
       unreadCount: 2,
       messages: [
         {
@@ -44,6 +45,7 @@ export const mockConversationsPayload: ConversationsPayload = {
         name: 'Mialy Andriana',
         phone: '+261 33 22 110 88',
       },
+      lead: { campaignName: 'Testing' },
       unreadCount: 0,
       messages: [
         {
@@ -73,6 +75,7 @@ export const mockConversationsPayload: ConversationsPayload = {
         name: 'Tovo R.',
         phone: '+261 32 90 555 41',
       },
+      lead: { campaignName: 'Testing' },
       unreadCount: 5,
       messages: [
         {

@@ -77,7 +77,7 @@ export function Dashboard() {
                   Sélectionnez une conversation
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Choisissez un contact à gauche pour voir ses échanges avec le bot.
+                  Choisissez un prospect à gauche pour voir ses échanges avec le bot.
                 </p>
               </div>
             </div>

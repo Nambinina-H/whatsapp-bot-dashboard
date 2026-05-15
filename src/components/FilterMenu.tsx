@@ -6,25 +6,37 @@ import { cn } from '@/lib/utils'
 import type { Channel } from '@/types/conversation'
 
 export type ChannelFilterValue = Channel | 'all'
+export type CampaignFilterValue = string | 'all'
 
-interface ChannelFilterMenuProps {
-  available: Channel[]
-  active: ChannelFilterValue
-  onChange: (value: ChannelFilterValue) => void
-  counts: Record<Channel, number>
+interface FilterMenuProps {
+  availableChannels: Channel[]
+  channelFilter: ChannelFilterValue
+  onChannelChange: (value: ChannelFilterValue) => void
+  channelCounts: Record<Channel, number>
   totalCount: number
+
+  availableCampaigns: string[]
+  campaignFilter: CampaignFilterValue
+  onCampaignChange: (value: CampaignFilterValue) => void
+  campaignCounts: Record<string, number>
+  campaignTotalCount: number
 }
 
-export function ChannelFilterMenu({
-  available,
-  active,
-  onChange,
-  counts,
+export function FilterMenu({
+  availableChannels,
+  channelFilter,
+  onChannelChange,
+  channelCounts,
   totalCount,
-}: ChannelFilterMenuProps) {
+  availableCampaigns,
+  campaignFilter,
+  onCampaignChange,
+  campaignCounts,
+  campaignTotalCount,
+}: FilterMenuProps) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
-  const isFiltered = active !== 'all'
+  const isFiltered = channelFilter !== 'all' || campaignFilter !== 'all'
 
   useEffect(() => {
     if (!open) return
@@ -44,12 +56,18 @@ export function ChannelFilterMenu({
     }
   }, [open])
 
-  const presentChannels = CHANNEL_ORDER.filter((c) => available.includes(c))
-  const activeChannel = isFiltered ? (active as Channel) : null
-  const activeLabel = activeChannel ? CHANNELS[activeChannel].label : null
+  const presentChannels = CHANNEL_ORDER.filter((c) =>
+    availableChannels.includes(c),
+  )
+  const activeChannelColor =
+    channelFilter !== 'all' ? CHANNELS[channelFilter as Channel].color : null
 
-  const handleSelect = (value: ChannelFilterValue) => {
-    onChange(value)
+  const pickChannel = (v: ChannelFilterValue) => {
+    onChannelChange(v)
+    setOpen(false)
+  }
+  const pickCampaign = (v: CampaignFilterValue) => {
+    onCampaignChange(v)
     setOpen(false)
   }
 
@@ -60,11 +78,7 @@ export function ChannelFilterMenu({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={
-          activeLabel
-            ? `Filtre actif : ${activeLabel}. Modifier`
-            : 'Filtrer par canal'
-        }
+        aria-label={isFiltered ? 'Filtres actifs. Modifier' : 'Filtrer'}
         className={cn(
           'relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border transition-colors md:h-9 md:w-9',
           isFiltered
@@ -73,10 +87,12 @@ export function ChannelFilterMenu({
         )}
       >
         <ListFilter className="size-4" aria-hidden="true" />
-        {activeChannel && (
+        {isFiltered && (
           <span
             className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white"
-            style={{ backgroundColor: CHANNELS[activeChannel].color }}
+            style={{
+              backgroundColor: activeChannelColor ?? '#475569',
+            }}
             aria-hidden="true"
           />
         )}
@@ -85,25 +101,23 @@ export function ChannelFilterMenu({
       {open && (
         <div
           role="menu"
-          aria-label="Filtrer par canal"
-          className="absolute right-0 top-full z-20 mt-1 w-56 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+          aria-label="Filtres"
+          className="absolute right-0 top-full z-20 mt-1 max-h-[calc(100dvh-120px)] w-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
         >
-          <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Canal
-          </div>
+          <SectionLabel>Canal</SectionLabel>
           <MenuOption
             label="Tous"
             count={totalCount}
-            selected={active === 'all'}
-            onClick={() => handleSelect('all')}
+            selected={channelFilter === 'all'}
+            onClick={() => pickChannel('all')}
           />
           {presentChannels.map((ch) => (
             <MenuOption
               key={ch}
               label={CHANNELS[ch].label}
-              count={counts[ch]}
-              selected={active === ch}
-              onClick={() => handleSelect(ch)}
+              count={channelCounts[ch]}
+              selected={channelFilter === ch}
+              onClick={() => pickChannel(ch)}
               icon={
                 <span style={{ color: CHANNELS[ch].color }}>
                   <ChannelGlyph channel={ch} size={14} decorative />
@@ -111,8 +125,38 @@ export function ChannelFilterMenu({
               }
             />
           ))}
+
+          {availableCampaigns.length > 0 && (
+            <>
+              <div className="my-1 border-t border-slate-100" />
+              <SectionLabel>Campagne</SectionLabel>
+              <MenuOption
+                label="Toutes"
+                count={campaignTotalCount}
+                selected={campaignFilter === 'all'}
+                onClick={() => pickCampaign('all')}
+              />
+              {availableCampaigns.map((name) => (
+                <MenuOption
+                  key={name}
+                  label={name}
+                  count={campaignCounts[name] ?? 0}
+                  selected={campaignFilter === name}
+                  onClick={() => pickCampaign(name)}
+                />
+              ))}
+            </>
+          )}
         </div>
       )}
+    </div>
+  )
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+      {children}
     </div>
   )
 }

@@ -1,8 +1,6 @@
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Megaphone } from 'lucide-react'
 import { Avatar } from '@/components/Avatar'
-import { ChannelGlyph } from '@/components/ChannelGlyph'
 import { MessageBubble } from '@/components/MessageBubble'
-import { CHANNELS } from '@/lib/channels'
 import type { Conversation } from '@/types/conversation'
 
 interface ConversationViewProps {
@@ -14,7 +12,6 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
   const sorted = [...conversation.messages].sort((a, b) =>
     a.timestamp.localeCompare(b.timestamp),
   )
-  const channelCfg = CHANNELS[conversation.channel]
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -38,24 +35,30 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
           <div className="truncate text-sm font-semibold text-slate-900">
             {conversation.contact.name}
           </div>
-          <div className="flex items-center gap-1.5 truncate text-xs text-slate-500">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-slate-500">
             <span className="truncate">{conversation.contact.phone}</span>
-            <span aria-hidden="true">·</span>
-            <span
-              className="inline-flex shrink-0 items-center gap-1"
-              style={{ color: channelCfg.color }}
-              aria-label={`Canal : ${channelCfg.label}`}
-              title={channelCfg.label}
-            >
-              <ChannelGlyph
-                channel={conversation.channel}
-                size={12}
-                decorative
-              />
-              <span className="hidden font-medium sm:inline">
-                {channelCfg.label}
-              </span>
-            </span>
+            {conversation.lead?.campaignName && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span
+                  className="inline-flex min-w-0 items-center gap-1"
+                  title={`Campagne : ${conversation.lead.campaignName}`}
+                >
+                  <Megaphone
+                    className="size-3 shrink-0 text-slate-400"
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">
+                    <span className="hidden text-slate-400 sm:inline">
+                      Campagne&nbsp;:&nbsp;
+                    </span>
+                    <span className="font-medium text-slate-600">
+                      {conversation.lead.campaignName}
+                    </span>
+                  </span>
+                </span>
+              </>
+            )}
           </div>
         </div>
         <span className="shrink-0 text-xs text-slate-500">

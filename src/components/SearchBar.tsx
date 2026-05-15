@@ -24,8 +24,8 @@ export function SearchBar({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Rechercher un contact…"
-        aria-label="Rechercher un contact"
+        placeholder="Rechercher un prospect…"
+        aria-label="Rechercher un prospect"
         className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-11 text-base text-slate-900 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 md:h-9 md:pr-9 md:text-sm"
       />
       {value.length > 0 && (

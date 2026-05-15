@@ -20,12 +20,17 @@ export interface Contact {
   avatar?: string | null
 }
 
+export interface LeadMeta {
+  campaignName?: string
+}
+
 export interface Conversation {
   id: string
   contact: Contact
   messages: Message[]
   unreadCount: number
   channel: Channel
+  lead?: LeadMeta
 }
 
 export interface ConversationsPayload {
