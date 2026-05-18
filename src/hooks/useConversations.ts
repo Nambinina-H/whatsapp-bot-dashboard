@@ -29,7 +29,12 @@ async function fetchConversations(): Promise<ConversationsPayload> {
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`)
   }
-  return (await response.json()) as ConversationsPayload
+
+  const raw = await response.text()
+  if (!raw.trim()) {
+    throw new Error('Synchronisation indisponible')
+  }
+  return JSON.parse(raw) as ConversationsPayload
 }
 
 export function useConversations() {
