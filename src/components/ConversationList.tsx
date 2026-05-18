@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { differenceInDays, format, isToday, isYesterday } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Megaphone, X } from 'lucide-react'
+import { LogOut, Megaphone, X } from 'lucide-react'
 import { Avatar } from '@/components/Avatar'
 import { ChannelGlyph } from '@/components/ChannelGlyph'
 import {
@@ -24,6 +24,7 @@ interface ConversationListProps {
   onSelect: (id: string) => void
   isLoading?: boolean
   isFetching?: boolean
+  onLogout?: () => void
 }
 
 function lastMessageOf(conv: Conversation) {
@@ -70,6 +71,7 @@ export function ConversationList({
   onSelect,
   isLoading,
   isFetching,
+  onLogout,
 }: ConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [channelFilter, setChannelFilter] = useState<ChannelFilterValue>('all')
@@ -306,6 +308,18 @@ export function ConversationList({
             )
           })}
         </ul>
+      )}
+
+      {onLogout && (
+        <button
+          type="button"
+          onClick={onLogout}
+          aria-label="Se déconnecter"
+          className="flex h-12 w-full shrink-0 items-center justify-center gap-2 border-t border-slate-100 bg-white px-4 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary/30 sm:h-14 sm:px-5"
+        >
+          <LogOut className="size-4 sm:size-[18px]" aria-hidden="true" />
+          <span>Se déconnecter</span>
+        </button>
       )}
     </div>
   )
