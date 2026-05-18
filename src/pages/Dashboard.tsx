@@ -27,12 +27,10 @@ export function Dashboard({ onLogout }: DashboardProps) {
         <div
           role="status"
           aria-live="polite"
-          className="flex shrink-0 items-center gap-3 border-b border-amber-300/60 bg-amber-50 px-4 py-2 text-sm text-amber-900"
+          className="flex shrink-0 items-center justify-center gap-3 border-b border-amber-300/60 bg-amber-50 px-4 py-2 text-sm text-amber-900"
         >
           <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
-          <span className="min-w-0 flex-1 truncate">
-            Synchronisation indisponible
-          </span>
+          <span className="truncate">Synchronisation indisponible</span>
           <span className="flex shrink-0 items-center gap-1.5 text-xs text-amber-800/80">
             <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
             <span className="hidden sm:inline">Nouvelle tentative…</span>
