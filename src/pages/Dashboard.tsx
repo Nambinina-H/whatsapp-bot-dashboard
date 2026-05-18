@@ -5,7 +5,11 @@ import { ConversationView } from '@/components/ConversationView'
 import { useConversations } from '@/hooks/useConversations'
 import { cn } from '@/lib/utils'
 
-export function Dashboard() {
+interface DashboardProps {
+  onLogout: () => void
+}
+
+export function Dashboard({ onLogout }: DashboardProps) {
   const {
     data: conversations,
     isLoading,
@@ -31,7 +35,7 @@ export function Dashboard() {
           </span>
           <span className="flex shrink-0 items-center gap-1.5 text-xs text-amber-800/80">
             <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-            Nouvelle tentative…
+            <span className="hidden sm:inline">Nouvelle tentative…</span>
           </span>
         </div>
       )}
@@ -50,6 +54,7 @@ export function Dashboard() {
             onSelect={setSelectedId}
             isLoading={isLoading}
             isFetching={isFetching}
+            onLogout={onLogout}
           />
         </aside>
 
