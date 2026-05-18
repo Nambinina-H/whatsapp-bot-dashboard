@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MessageCircle } from 'lucide-react'
+import { Loader2, MessageCircle, TriangleAlert } from 'lucide-react'
 import { ConversationList } from '@/components/ConversationList'
 import { ConversationView } from '@/components/ConversationView'
 import { useConversations } from '@/hooks/useConversations'
@@ -11,8 +11,6 @@ export function Dashboard() {
     isLoading,
     isFetching,
     isError,
-    error,
-    refetch,
   } = useConversations()
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -22,17 +20,19 @@ export function Dashboard() {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-slate-50">
       {isError && (
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-          <span className="min-w-0 truncate">
-            Erreur de chargement : {error?.message ?? 'inconnue'}
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex shrink-0 items-center gap-3 border-b border-amber-300/60 bg-amber-50 px-4 py-2 text-sm text-amber-900"
+        >
+          <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 flex-1 truncate">
+            Synchronisation indisponible
           </span>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="shrink-0 rounded-md border border-destructive/40 px-3 py-1 text-xs font-medium hover:bg-destructive/20"
-          >
-            Réessayer
-          </button>
+          <span className="flex shrink-0 items-center gap-1.5 text-xs text-amber-800/80">
+            <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+            Nouvelle tentative…
+          </span>
         </div>
       )}
 
@@ -77,7 +77,7 @@ export function Dashboard() {
                   Sélectionnez une conversation
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Choisissez un contact à gauche pour voir ses échanges avec le bot.
+                  Choisissez un prospect à gauche pour voir ses échanges avec le bot.
                 </p>
               </div>
             </div>

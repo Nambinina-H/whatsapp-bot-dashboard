@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { normalizeChannel } from '@/lib/channels'
 import { mockConversationsPayload } from '@/lib/mock-data'
 import type { Conversation, ConversationsPayload } from '@/types/conversation'
 
@@ -28,7 +29,12 @@ async function fetchConversations(): Promise<ConversationsPayload> {
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`)
   }
-  return (await response.json()) as ConversationsPayload
+
+  const raw = await response.text()
+  if (!raw.trim()) {
+    throw new Error('Synchronisation indisponible')
+  }
+  return JSON.parse(raw) as ConversationsPayload
 }
 
 export function useConversations() {
@@ -37,6 +43,10 @@ export function useConversations() {
     queryFn: fetchConversations,
     refetchInterval: 3000,
     refetchIntervalInBackground: false,
-    select: (data) => data.conversations,
+    select: (data) =>
+      data.conversations.map((c) => ({
+        ...c,
+        channel: normalizeChannel((c as { channel?: unknown }).channel),
+      })),
   })
 }

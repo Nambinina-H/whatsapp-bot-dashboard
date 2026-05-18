@@ -14,7 +14,7 @@ export function EmptySearchState({ query, onClear }: EmptySearchStateProps) {
         aria-hidden="true"
       />
       <p className="text-sm font-medium text-slate-700">
-        Aucun contact pour «&nbsp;{query}&nbsp;»
+        Aucun prospect pour «&nbsp;{query}&nbsp;»
       </p>
       <p className="mt-1 text-xs text-slate-500">
         Essaye avec un autre numéro ou nom

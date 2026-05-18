@@ -112,9 +112,9 @@ def main() -> int:
         )
 
         page.goto(URL, wait_until="networkidle")
-        page.wait_for_selector("input[aria-label='Rechercher un contact']")
+        page.wait_for_selector("input[aria-label='Rechercher un prospect']")
 
-        search = page.locator("input[aria-label='Rechercher un contact']")
+        search = page.locator("input[aria-label='Rechercher un prospect']")
         counter = page.locator("header span.text-xs").first
 
         # --- 1. Empty (initial state)
@@ -172,7 +172,7 @@ def main() -> int:
         page.wait_for_timeout(300)
         search.fill("BTP")
         page.wait_for_timeout(400)
-        no_results_visible = page.get_by_text("Aucun contact pour").is_visible()
+        no_results_visible = page.get_by_text("Aucun prospect pour").is_visible()
         page.screenshot(
             path=str(OUT / "search-no-results.png"),
             clip={"x": 0, "y": 0, "width": 380, "height": 800},

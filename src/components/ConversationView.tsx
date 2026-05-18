@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Megaphone } from 'lucide-react'
 import { Avatar } from '@/components/Avatar'
 import { MessageBubble } from '@/components/MessageBubble'
 import type { Conversation } from '@/types/conversation'
@@ -20,7 +20,7 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
           <button
             type="button"
             onClick={onBack}
-            className="-ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 md:hidden"
+            className="-ml-2 inline-flex h-11 w-11 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 md:hidden"
             aria-label="Retour à la liste"
           >
             <ChevronLeft className="size-5" aria-hidden="true" />
@@ -29,13 +29,36 @@ export function ConversationView({ conversation, onBack }: ConversationViewProps
         <Avatar
           name={conversation.contact.name}
           src={conversation.contact.avatar}
+          channel={conversation.channel}
         />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold text-slate-900">
             {conversation.contact.name}
           </div>
-          <div className="truncate text-xs text-slate-500">
-            {conversation.contact.phone}
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-slate-500">
+            <span className="truncate">{conversation.contact.phone}</span>
+            {conversation.lead?.campaignName && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span
+                  className="inline-flex min-w-0 items-center gap-1"
+                  title={`Campagne : ${conversation.lead.campaignName}`}
+                >
+                  <Megaphone
+                    className="size-3 shrink-0 text-slate-400"
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">
+                    <span className="hidden text-slate-400 sm:inline">
+                      Campagne&nbsp;:&nbsp;
+                    </span>
+                    <span className="font-medium text-slate-600">
+                      {conversation.lead.campaignName}
+                    </span>
+                  </span>
+                </span>
+              </>
+            )}
           </div>
         </div>
         <span className="shrink-0 text-xs text-slate-500">

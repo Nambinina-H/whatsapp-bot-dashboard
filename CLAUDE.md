@@ -13,7 +13,7 @@ Interface web responsive pour visualiser les conversations entamées par mon bot
 
 ## Design
 Interface inspirée de WhatsApp Web :
-- Colonne de gauche : liste des conversations (avatar, nom du contact, dernier message, timestamp, badge non-lu)
+- Colonne de gauche : liste des conversations (avatar, nom du prospect, dernier message, timestamp, badge non-lu)
 - Colonne de droite : fil de messages de la conversation sélectionnée
 - Responsive : sur mobile (<768px), bascule entre liste et conversation (pas de split-view)
 - Thème clair + dark mode

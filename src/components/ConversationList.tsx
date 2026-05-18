@@ -1,14 +1,22 @@
 import { useMemo, useState } from 'react'
 import { differenceInDays, format, isToday, isYesterday } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { Megaphone, X } from 'lucide-react'
 import { Avatar } from '@/components/Avatar'
+import { ChannelGlyph } from '@/components/ChannelGlyph'
+import {
+  FilterMenu,
+  type CampaignFilterValue,
+  type ChannelFilterValue,
+} from '@/components/FilterMenu'
 import { ConversationListSkeleton } from '@/components/ConversationListSkeleton'
 import { EmptySearchState } from '@/components/EmptySearchState'
 import { SearchBar } from '@/components/SearchBar'
 import { useDebounce } from '@/hooks/useDebounce'
+import { CHANNELS } from '@/lib/channels'
 import { highlightMatch } from '@/lib/highlight'
 import { cn } from '@/lib/utils'
-import type { Conversation } from '@/types/conversation'
+import type { Channel, Conversation } from '@/types/conversation'
 
 interface ConversationListProps {
   conversations: Conversation[]
@@ -64,28 +72,84 @@ export function ConversationList({
   isFetching,
 }: ConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [channelFilter, setChannelFilter] = useState<ChannelFilterValue>('all')
+  const [campaignFilter, setCampaignFilter] =
+    useState<CampaignFilterValue>('all')
   const debouncedQuery = useDebounce(searchQuery, 250)
+
+  const channelCounts = useMemo(() => {
+    const counts: Record<Channel, number> = {
+      whatsapp: 0,
+      facebook: 0,
+      instagram: 0,
+      linkedin: 0,
+      unknown: 0,
+    }
+    for (const c of conversations) counts[c.channel] += 1
+    return counts
+  }, [conversations])
+
+  const availableChannels = useMemo(
+    () =>
+      (Object.keys(channelCounts) as Channel[]).filter(
+        (c) => channelCounts[c] > 0,
+      ),
+    [channelCounts],
+  )
+
+  const { availableCampaigns, campaignCounts } = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const c of conversations) {
+      const name = c.lead?.campaignName
+      if (name) counts[name] = (counts[name] ?? 0) + 1
+    }
+    const list = Object.keys(counts).sort((a, b) => a.localeCompare(b))
+    return { availableCampaigns: list, campaignCounts: counts }
+  }, [conversations])
+
+  const showFilterButton =
+    availableChannels.length > 1 || availableCampaigns.length > 1
 
   const filteredConversations = useMemo(() => {
     const query = debouncedQuery.trim()
-    if (!query) return conversations
-
     const normalizedQuery = normalize(query)
     const queryDigits = query.replace(/\D/g, '')
 
     return conversations.filter((conv) => {
+      if (channelFilter !== 'all' && conv.channel !== channelFilter) {
+        return false
+      }
+      if (campaignFilter !== 'all' && conv.lead?.campaignName !== campaignFilter) {
+        return false
+      }
+      if (!query) return true
+
       const name = normalize(conv.contact.name)
       const phone = conv.contact.phone.replace(/\D/g, '')
-
       return (
         name.includes(normalizedQuery) ||
         (queryDigits.length > 0 && phone.includes(queryDigits))
       )
     })
-  }, [conversations, debouncedQuery])
+  }, [conversations, debouncedQuery, channelFilter, campaignFilter])
 
   const sorted = sortConversations(filteredConversations)
   const activeQuery = debouncedQuery.trim()
+  const hasActiveFilter =
+    channelFilter !== 'all' ||
+    campaignFilter !== 'all' ||
+    activeQuery.length > 0
+
+  const resetAll = () => {
+    setSearchQuery('')
+    setChannelFilter('all')
+    setCampaignFilter('all')
+  }
+
+  const emptyQueryLabel =
+    activeQuery ||
+    (channelFilter !== 'all' ? CHANNELS[channelFilter].label : '') ||
+    (campaignFilter !== 'all' ? campaignFilter : '')
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -106,19 +170,78 @@ export function ConversationList({
         <span className="text-xs text-slate-500">
           {isLoading
             ? 'Chargement…'
-            : activeQuery
+            : hasActiveFilter
               ? `${filteredConversations.length} sur ${conversations.length}`
-              : `${conversations.length} contact(s)`}
+              : `${conversations.length} prospect(s)`}
         </span>
       </header>
 
       {!isLoading && conversations.length > 0 && (
-        <div className="shrink-0 border-b border-slate-100 px-3 py-2">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onClear={() => setSearchQuery('')}
-          />
+        <div className="flex shrink-0 flex-col gap-2 border-b border-slate-100 px-3 py-2">
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onClear={() => setSearchQuery('')}
+              />
+            </div>
+            {showFilterButton && (
+              <FilterMenu
+                availableChannels={availableChannels}
+                channelFilter={channelFilter}
+                onChannelChange={setChannelFilter}
+                channelCounts={channelCounts}
+                totalCount={conversations.length}
+                availableCampaigns={availableCampaigns}
+                campaignFilter={campaignFilter}
+                onCampaignChange={setCampaignFilter}
+                campaignCounts={campaignCounts}
+                campaignTotalCount={conversations.length}
+              />
+            )}
+          </div>
+          {(channelFilter !== 'all' || campaignFilter !== 'all') && (
+            <div className="flex flex-wrap gap-1.5">
+              {channelFilter !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => setChannelFilter('all')}
+                  aria-label={`Retirer le filtre canal ${CHANNELS[channelFilter].label}`}
+                  className="group inline-flex items-center gap-1.5 rounded-full bg-slate-100 py-0.5 pl-2 pr-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200"
+                >
+                  <span style={{ color: CHANNELS[channelFilter].color }}>
+                    <ChannelGlyph channel={channelFilter} size={11} decorative />
+                  </span>
+                  <span className="truncate max-w-[140px]">
+                    {CHANNELS[channelFilter].label}
+                  </span>
+                  <X
+                    className="size-3 text-slate-400 group-hover:text-slate-600"
+                    aria-hidden="true"
+                  />
+                </button>
+              )}
+              {campaignFilter !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => setCampaignFilter('all')}
+                  aria-label={`Retirer le filtre campagne ${campaignFilter}`}
+                  className="group inline-flex items-center gap-1.5 rounded-full bg-slate-100 py-0.5 pl-2 pr-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200"
+                >
+                  <Megaphone
+                    className="size-3 shrink-0 text-slate-400"
+                    aria-hidden="true"
+                  />
+                  <span className="truncate max-w-[140px]">{campaignFilter}</span>
+                  <X
+                    className="size-3 text-slate-400 group-hover:text-slate-600"
+                    aria-hidden="true"
+                  />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -134,10 +257,7 @@ export function ConversationList({
         </div>
       ) : filteredConversations.length === 0 ? (
         <div className="flex-1 overflow-hidden">
-          <EmptySearchState
-            query={activeQuery}
-            onClear={() => setSearchQuery('')}
-          />
+          <EmptySearchState query={emptyQueryLabel} onClear={resetAll} />
         </div>
       ) : (
         <ul className="flex-1 overflow-y-auto">
@@ -154,7 +274,11 @@ export function ConversationList({
                     isSelected && 'bg-slate-100 hover:bg-slate-100',
                   )}
                 >
-                  <Avatar name={conv.contact.name} src={conv.contact.avatar} />
+                  <Avatar
+                    name={conv.contact.name}
+                    src={conv.contact.avatar}
+                    channel={conv.channel}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate text-sm font-medium text-slate-900">
